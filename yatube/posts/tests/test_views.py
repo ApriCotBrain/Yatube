@@ -11,6 +11,7 @@ from django.urls import reverse
 
 from posts.models import Group, Follow, Post
 
+
 User = get_user_model()
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -276,7 +277,7 @@ class PostViewsTests(TestCase):
         redirect = f'/profile/{self.author}/'
 
         self.assertRedirects(response, redirect)
-        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.assertEqual(Follow.objects.count(), follow_count)
 
     def test_unfollow_authorized_client(self):
         """Авторизованный пользователь может
