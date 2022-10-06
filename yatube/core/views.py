@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.views.defaults import server_error, page_not_found, permission_denied
 
 
 def page_not_found(request, exception):

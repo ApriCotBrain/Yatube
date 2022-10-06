@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 
-import posts.views
 from posts.forms import CommentForm, PostForm
 from posts.models import Comment, Follow, Group, Post, User
 from posts.utils import paginator
@@ -36,7 +35,7 @@ def profile(request, username):
         'author': author,
         'page_obj': page_obj,
         'following': following,
-        }
+    }
     return render(request, 'posts/profile.html', context)
 
 
