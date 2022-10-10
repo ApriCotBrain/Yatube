@@ -11,7 +11,6 @@ class Group(models.Model):
         verbose_name='Название группы')
     slug = models.SlugField(
         unique=True,
-        db_index=True,
         verbose_name='slug')
     description = models.TextField(
         verbose_name='Описание группы')
@@ -107,6 +106,10 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'follow'
         verbose_name_plural = 'follow'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'user'], name='unique subscription')
+        ]
 
     def __str__(self):
         return self.user

@@ -1,12 +1,13 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
 
 from posts.forms import CommentForm, PostForm
-from posts.models import Comment, Follow, Group, Post, User
+from posts.models import Follow, Group, Post, User
 from posts.utils import paginator
 
 
+@cache_page(20)
 def index(request):
     posts = Post.objects.all()
     page_obj = paginator(request, posts)
@@ -30,7 +31,9 @@ def group_posts(request, slug):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     page_obj = paginator(request, author.posts.all())
-    following = author.following.all()
+    following = False
+    if request.user.is_authenticated:
+        following = author.following.exists()
     context = {
         'author': author,
         'page_obj': page_obj,
@@ -43,7 +46,7 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     posts_count = post.author.posts.count()
     form = CommentForm(request.POST or None)
-    comments = Comment.objects.filter(post=post)
+    comments = post.comments.all()
     context = {
         'post': post,
         'posts_count': posts_count,
@@ -65,7 +68,6 @@ def post_create(request):
             post.author = request.user
             post.save()
             return redirect('posts:profile', request.user.username)
-        return render(request, 'posts/post_create.html', {'form': form})
     return render(request, 'posts/post_create.html', {'form': form})
 
 
@@ -86,7 +88,6 @@ def post_edit(request, post_id):
 
     elif request.method == 'GET':
         form = PostForm(
-            files=request.FILES or None,
             instance=post,
         )
 
@@ -126,13 +127,12 @@ def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     if author != user:
         Follow.objects.get_or_create(user=user, author=author)
-        return redirect('posts:profile', username=username)
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+    return redirect('posts:profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    user = request.user
+    current_user = request.user
     author = get_object_or_404(User, username=username)
-    user.follower.filter(author=author).delete()
+    current_user.follower.filter(author=author).delete()
     return redirect('posts:follow_index')

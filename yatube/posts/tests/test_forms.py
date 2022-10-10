@@ -29,11 +29,11 @@ class PostCreateFormTest(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super().tearDownClass()
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def setUp(self):
-        self
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.post.author)
 
@@ -71,7 +71,8 @@ class PostCreateFormTest(TestCase):
         self.assertTrue(Post.objects.filter(
             text=self.post.text,
             author=self.post.author,
-            group=self.post.group).exists())
+            group=self.post.group,
+            image=self.post.image).exists())
         self.assertEqual(Post.objects.count(), posts_count + 1)
 
     def test_edit_post(self):
@@ -108,10 +109,20 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(Post.objects.count(), posts_count)
         self.assertTrue(Post.objects.filter(
-            text=form_data['text'],
+            text=self.post.text,
             author=self.post.author,
-            group=self.post.group).exists())
-        self.assertNotEqual(old_post.text, form_data['text'])
+            group=self.post.group,
+            image=self.post.image).exists())
+
+    def test_guest_client_create_post(self):
+        """Неавторизованный пользователь
+         не может создавать посты."""
+        response = self.guest_client.post(
+            reverse('posts:post_create')
+        )
+
+        self.assertRedirects(response, '/auth/login/?next=/create/')
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
 
 class CommentCreateFormTest(TestCase):
@@ -154,7 +165,8 @@ class CommentCreateFormTest(TestCase):
                     kwargs={'post_id': self.post.id}))
         self.assertTrue(Comment.objects.filter(
             text=self.comment.text,
-            author=self.comment.author).exists())
+            author=self.comment.author,
+            post=self.post).exists())
         self.assertEqual(Comment.objects.count(), comments_count + 1)
 
     def test_add_comment_guest_client(self):
@@ -170,4 +182,4 @@ class CommentCreateFormTest(TestCase):
         redirect = f'/auth/login/?next=/posts/{self.post.id}/comment/'
 
         self.assertRedirects(response, redirect)
-        self.assertNotEqual(Comment.objects.count(), comments_count + 1)
+        self.assertEqual(Comment.objects.count(), comments_count)
