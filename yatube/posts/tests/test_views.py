@@ -105,7 +105,8 @@ class PostViewsTests(TestCase):
 
     def test_index_show_correct_context(self):
         """Шаблон index сформированы с правильным контекстом."""
-        response = self.authorized_client_non_author.get(reverse(self.url_index))
+        response = self.authorized_client_non_author.get(
+            reverse(self.url_index))
         first_object = {
             response.context['page_obj'][0].text: self.post.text,
             response.context['page_obj'][0].group: self.post.group,
