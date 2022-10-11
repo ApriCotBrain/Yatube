@@ -254,7 +254,7 @@ class PostViewsTests(TestCase):
         response_before_cached = self.authorized_client_non_author.get(
             reverse(self.url_index))
         posts = response_before_cached.content
-        Post.objects.create(
+        post = Post.objects.create(
             author=self.post.author,
             group=self.group_1,
             text='test-text',
@@ -270,7 +270,7 @@ class PostViewsTests(TestCase):
         clear_cached_content = response_clear_cache.content
 
         self.assertNotEqual(cached_content, clear_cached_content)
-        self.assertTrue(b'post' in clear_cached_content)
+        self.assertNotIn(post, response_clear_cache.items())
 
     def test_follow_authorized_client(self):
         """Авторизованный пользователь может подписываться

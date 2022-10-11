@@ -31,9 +31,10 @@ def group_posts(request, slug):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     page_obj = paginator(request, author.posts.all())
-    following = False
     if request.user.is_authenticated:
         following = author.following.exists()
+    else:
+        following = False
     context = {
         'author': author,
         'page_obj': page_obj,
@@ -85,7 +86,7 @@ def post_edit(request, post_id):
         if form.is_valid():
             form.save()
             return redirect('posts:post_detail', post_id)
-
+        return render(request, 'posts/post_create.html', {'form': form})
     elif request.method == 'GET':
         form = PostForm(
             instance=post,
