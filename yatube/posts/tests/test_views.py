@@ -270,7 +270,7 @@ class PostViewsTests(TestCase):
         clear_cached_content = response_clear_cache.content
 
         self.assertNotEqual(cached_content, clear_cached_content)
-        self.assertNotIn(post, response_clear_cache.items())
+        self.assertIn(post, response_clear_cache.context['page_obj'])
 
     def test_follow_authorized_client(self):
         """Авторизованный пользователь может подписываться
